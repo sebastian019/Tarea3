@@ -6,32 +6,20 @@
 #include "list.h"
 #define BARRA "-------------------------------------------------------"
 
-typedef struct _tarea Tarea;
-typedef struct Node Node;
-
-struct Node {
-    const void * data;
-    Node * next;
-    Node * prev;
+struct Nodo {
+    char nombre[21]; // Descripción de la tarea
+    int prioridad; // Prioridad de la tarea
+    struct Nodo* vecinos[5]; // Arreglo de punteros a nodos vecinos (tareas precedentes)
+    int numVecinos; // Número de vecinos
 };
 
-typedef struct NodoT {
-  Tarea *tarea;
-  List *adyacentes; // lista de nodos adyacentes
-} NodoT;
+// Definición de la estructura de la cola de prioridad
+struct ColaPrioridad {
+    struct Nodo* tareas[1000]; // Arreglo de punteros a nodos de tareas
+    int numTareas; // Número de tareas en la cola de prioridad
+};
 
-typedef struct _tarea {
-  char nombre[21];
-  unsigned short priority;
-  bool completada;
-  NodoT *nodo; // nodo asociado a la tarea
-} Tarea;
-
-typedef struct _grafo {
-  List *nodos; // lista de nodos del grafo
-} Grafo;
-
-void mostrarMenu() {
+void mostrarMenu(){
   puts(BARRA);
   printf("                         Menu\n");
   puts(BARRA);
@@ -39,82 +27,100 @@ void mostrarMenu() {
   puts(BARRA);
 }
 
-void agregarTarea(char nombre[],unsigned short prioridad, Grafo *grafo){
-  Tarea* newTarea = (Tarea*)malloc(sizeof(Tarea));
-  strcpy(newTarea -> nombre, nombre);
-  newTarea -> priority = prioridad;
-  newTarea -> completada = false;
-
-  NodoT *node = (NodoT*)malloc(sizeof(NodoT));
-  node -> tarea = newTarea;
-  node -> adyacentes = createList();
-
-  pushBack(grafo -> nodos, node);
-  newTarea -> nodo = node;
+void ordenar(struct ColaPrioridad *cola){
+  if(cola -> numTareas < 2){
+    return;
+  }
+  int i = cola->numTareas - 1;
+  while (i > 0 && cola->tareas[i]->prioridad > cola->tareas[(i-1)/2]->prioridad) {
+    // Intercambiar la tarea con su padre si su prioridad es mayor
+    struct Nodo* aux = cola->tareas[i];
+    cola->tareas[i] = cola->tareas[(i-1)/2];
+    cola->tareas[(i-1)/2] = aux;
+    i = (i-1) / 2;
+  }
 }
 
+void agregarTarea(char *nombreT, unsigned short prioridadT,struct ColaPrioridad *cola){
+  struct Nodo * newTarea = (struct Nodo *)malloc(sizeof(struct Nodo));
+  strcpy(newTarea -> nombre, nombreT);
+  newTarea->prioridad = prioridadT;
+  newTarea->numVecinos = 0;
 
-/*Tarea *existe(Grafo *grafo, char *nombreTarea) {
-  NodoT *current = NULL;
-  
-  for (Node *node = firstList(grafo->nodos); node != NULL; node = nextList(grafo -> nodos)) {
-    printf("hola\n");
-    current = (NodoT*) node->data;
-    printf("hola\n");
-    Tarea *tareaA = current->tarea;
-    printf("hola\n");
-    
-    if (strcmp(tareaA->nombre, nombreTarea) == 0) {
-      return tareaA;
+  cola->tareas[cola->numTareas] = newTarea;
+  cola->numTareas++;
+  ordenar(cola);
+}
+
+void precedencia(char *t1, char *t2, struct ColaPrioridad *cola){
+  int pos = -1;
+  for(int i = 0 ; i < cola -> numTareas ; i++){
+    if(strcmp(cola->tareas[i]->nombre,t1) == 0){
+      pos = i;
+      break;
     }
   }
-  // No se encontró ninguna tarea con el nombre buscado
-  return NULL;
-}*/
-
-void precedencia(Grafo *grafo){
-  char nom1[21],nom2[21];
-  printf("Ingrese el nombre de la tarea 1\n");
-  scanf(" %[^\n]", nom1);
-  /*Tarea *tarea1 = existe(grafo,nom1);
-
-  if(tarea1 == NULL){
+  
+  if(pos == -1){
     printf("Tarea 1 no encontrada\n");
     return;
   }
   
-  printf("Ingrese el nombre de la tarea 2\n");
-  scanf(" %[^\n]", nom2);
-  Tarea *tarea2 = existe(grafo,nom2);
-
-  if(tarea2 == NULL){
-    printf("Tarea 2 no encontrada");
-    return;
-  }
-
-  NodoT *nodoTarea1 = tarea1->nodo;
-  NodoT *nodoTarea2 = tarea2->nodo;
-  pushBack(nodoTarea2->adyacentes, nodoTarea1);*/
-}
-
-void mostrarTareas(Grafo *grafo){
-  List *porHacer = createList();
-  for(Node* n = firstList(grafo -> nodos) ; n != NULL ; n = nextList(grafo -> nodos)){
-    NodoT *nodo = (NodoT*)n -> data;
-    Tarea *tarea = nodo -> tarea;
-
-    if(tarea -> completada == false){
-      
+ int pos2 = -1;
+  
+  for(int i = 0 ; i < cola -> numTareas ; i++){
+    if(strcmp(cola->tareas[i]->nombre,t2) == 0){
+      pos2 = i;
+      break;
     }
   }
   
+  if(pos2 == -1){
+    printf("Tarea 2 no encontrada\n");
+    return;
+  }
+  cola -> tareas[pos2] -> vecinos[cola -> tareas[pos] -> numVecinos] = cola -> tareas[pos];
+  cola -> tareas[pos2] -> numVecinos++;
 }
 
+void mostrarTareas(struct ColaPrioridad *cola){
+  if(cola->numTareas == 0){
+    printf("La cola esta vacia, agrege datos antes de mostrar\n");
+    return;
+  }
+  struct ColaPrioridad copy = *cola;
+
+  for(int i = 0 ; i < copy.numTareas ; i++) {
+    for(int j = 0 ; j < i ; j++) {
+      if(copy.tareas[j]->prioridad > copy.tareas[j+1]->prioridad) {
+        struct Nodo* aux = copy.tareas[j];
+        copy.tareas[j] = copy.tareas[j+1];
+        copy.tareas[j+1] = aux;
+      }
+    }
+  }
+
+  for(int i = 0; i < copy.numTareas ; i++) {
+    printf("%d. %s (Prioridad: %d)", i+1, copy.tareas[i]->nombre, copy.tareas[i]->prioridad);
+    if(copy.tareas[i]->numVecinos > 0){
+      printf(" - Precedente: ");
+      for(int j = 0; j < copy.tareas[i]->numVecinos ; j++) {
+        printf("%s", copy.tareas[i]->vecinos[j]->nombre);
+        if(j != copy.tareas[i]->numVecinos - 1){
+          printf(", ");
+        }
+      }
+    }
+    printf("\n");
+  }
+}
+
+
 int main(){
-  unsigned short numIngresado, prioridad;
-  char nombre[21];
-  Grafo *grafo = (Grafo*)malloc(sizeof(Grafo));
-  grafo -> nodos = createList();
+  unsigned short numIngresado, prioridadT;
+  char nombreT[21];
+  struct ColaPrioridad *cola = (struct ColaPrioridad *)malloc(sizeof(struct ColaPrioridad)); 
+  
   while(true){
     mostrarMenu();
 
@@ -133,16 +139,21 @@ int main(){
     }
     if (numIngresado == 1) {
       printf("Ingrese el Nombre de la tarea\n");
-      scanf(" %[^\n]", nombre);
+      scanf(" %[^\n]", nombreT);
       printf("Ingrese la prioridad de la tarea\n");
-      scanf("%hu", &prioridad);
-      agregarTarea(nombre,prioridad,grafo);
+      scanf("%hu", &prioridadT);
+      agregarTarea(nombreT,prioridadT,cola);
     }
     if (numIngresado == 2) {
-      precedencia(grafo);
+      char t1[21],t2[21];
+      printf("Ingrese el Nombre de la tarea 1\n");
+      scanf(" %[^\n]", t1);
+      printf("Ingrese el Nombre de la tarea 2\n");
+      scanf(" %[^\n]", t2);
+      precedencia(t1,t2,cola);
     }
     if (numIngresado == 3) {
-      mostrarTareas(grafo);
+      mostrarTareas(cola);
     }
     if (numIngresado == 4) {
       //completada();
