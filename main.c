@@ -7,8 +7,15 @@
 #define BARRA "-------------------------------------------------------"
 
 typedef struct _tarea Tarea;
+typedef struct Node Node;
 
-typedef struct _nodo {
+struct Node {
+    const void * data;
+    Node * next;
+    Node * prev;
+};
+
+typedef struct NodoT {
   Tarea *tarea;
   List *adyacentes; // lista de nodos adyacentes
 } NodoT;
@@ -23,8 +30,6 @@ typedef struct _tarea {
 typedef struct _grafo {
   List *nodos; // lista de nodos del grafo
 } Grafo;
-
-
 
 void mostrarMenu() {
   puts(BARRA);
@@ -48,19 +53,61 @@ void agregarTarea(char nombre[],unsigned short prioridad, Grafo *grafo){
   newTarea -> nodo = node;
 }
 
-void existe(Grafo *grafo, char *tarea){
+
+/*Tarea *existe(Grafo *grafo, char *nombreTarea) {
+  NodoT *current = NULL;
   
-}
+  for (Node *node = firstList(grafo->nodos); node != NULL; node = nextList(grafo -> nodos)) {
+    printf("hola\n");
+    current = (NodoT*) node->data;
+    printf("hola\n");
+    Tarea *tareaA = current->tarea;
+    printf("hola\n");
+    
+    if (strcmp(tareaA->nombre, nombreTarea) == 0) {
+      return tareaA;
+    }
+  }
+  // No se encontró ninguna tarea con el nombre buscado
+  return NULL;
+}*/
 
 void precedencia(Grafo *grafo){
-  char tarea1[21],tarea2[21];
+  char nom1[21],nom2[21];
   printf("Ingrese el nombre de la tarea 1\n");
-  scanf(" %[^\n]", tarea1);
-  existe(grafo,tarea1);
+  scanf(" %[^\n]", nom1);
+  /*Tarea *tarea1 = existe(grafo,nom1);
+
+  if(tarea1 == NULL){
+    printf("Tarea 1 no encontrada\n");
+    return;
+  }
   
   printf("Ingrese el nombre de la tarea 2\n");
-  scanf(" %[^\n]", tarea2);
-  existe(grafo,tarea2);
+  scanf(" %[^\n]", nom2);
+  Tarea *tarea2 = existe(grafo,nom2);
+
+  if(tarea2 == NULL){
+    printf("Tarea 2 no encontrada");
+    return;
+  }
+
+  NodoT *nodoTarea1 = tarea1->nodo;
+  NodoT *nodoTarea2 = tarea2->nodo;
+  pushBack(nodoTarea2->adyacentes, nodoTarea1);*/
+}
+
+void mostrarTareas(Grafo *grafo){
+  List *porHacer = createList();
+  for(Node* n = firstList(grafo -> nodos) ; n != NULL ; n = nextList(grafo -> nodos)){
+    NodoT *nodo = (NodoT*)n -> data;
+    Tarea *tarea = nodo -> tarea;
+
+    if(tarea -> completada == false){
+      
+    }
+  }
+  
 }
 
 int main(){
@@ -95,7 +142,7 @@ int main(){
       precedencia(grafo);
     }
     if (numIngresado == 3) {
-      //mostrarTareas();
+      mostrarTareas(grafo);
     }
     if (numIngresado == 4) {
       //completada();
