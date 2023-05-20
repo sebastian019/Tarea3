@@ -8,13 +8,15 @@
 #define BARRA "-------------------------------------------------------"
 
 typedef struct{
-    char tarea[21];
-    unsigned short priority;
-    bool completada;
-    List* adyacentes;
-    //struct Node* next;
+  char tarea[21];
+  unsigned short priority;
+  bool completada;
+  List *adyacentes;
 } task;
 
+typedef struct{
+  char pre[21];
+}adyacentes;
 
 
 void mostrarMenu(){
@@ -25,58 +27,118 @@ void mostrarMenu(){
   puts(BARRA);
 }
 
-void agregarTarea(char *nombre,unsigned short prioridad, HashMap* map){
+void agregarTarea(char *nombre,unsigned short prioridad, HashMap* map, int *cont){
   task* newTarea = (task*)malloc(sizeof(task));
   strcpy(newTarea -> tarea, nombre);
   newTarea -> priority = prioridad;
   newTarea -> completada = false;
-  newTarea -> adyacentes = createList();
   insertMap(map, newTarea -> tarea, newTarea);
-}
-
-task *buscar(char *nombre, HashMap *map){
-  return (task*)searchMap(map, nombre);
+  (*cont)++;
 }
 
 void precedencia(char *t1, char *t2,HashMap *map){
-  task *tarea1 = (task*)searchMap(map, t1);
-  task *tarea2 = (task*)searchMap(map, t2);
-
-  if(tarea1 == NULL || tarea2 == NULL){
-    printf("Una o las 2 taeras no existen\n");
+  Pair* i=searchMap(map, t2);
+  if(((task *)i->value)->adyacentes==NULL){
+    ((task*)i->value)->adyacentes = createList();
+  }
+  Pair* l=searchMap(map, t1);
+  if(l == NULL || l == NULL){
+    printf("Una o dos de las tareas no existe");
     return;
   }
-  tarea1 -> adyacentes = createList();
-  pushBack(tarea1 -> adyacentes, tarea2);
+  pushBack(((task *)i->value)->adyacentes, l->key);
 }
 
-void mostrarTareas(HashMap *map){
+void mostrarTareas(HashMap *map, int conT) {
   Pair *a = firstMap(map);
+  if (a == NULL) {
+    printf("No se ha ingresado ninguna tarea\n");
+    return;
+  }
+
+  int numTareas = conT;
+  task **tareasAux = malloc(sizeof(task *) * numTareas);
+  int *indices = malloc(sizeof(int) * numTareas);
+  int index = 0;
+
   int cont = 1;
-  while(a != NULL){
-    task *t = (task*)a -> value;
-    printf("%d %s (Prioridad: %hu)", cont, t->tarea,t -> priority);
-    if(t -> adyacentes != NULL){
+  while (a != NULL) {
+    task *o = (task *)a->value;
+    tareasAux[index] = o;
+    indices[index] = index;
+    index++;
+
+    a = nextMap(map);
+  }
+
+  // Ordenar los índices según la prioridad de las tareas
+  for (int i = 1; i < numTareas; i++) {
+    int j = i;
+    while (j > 0 && tareasAux[indices[j - 1]]->priority > tareasAux[indices[j]]->priority) {
+      int temp = indices[j];
+      indices[j] = indices[j - 1];
+      indices[j - 1] = temp;
+      j--;
+    }
+  }
+
+  // Mostrar las tareas ordenadas por prioridad con precedencia
+  printf("Tareas ordenadas por prioridad:\n");
+  for (int i = 0; i < numTareas; i++) {
+    task *o = tareasAux[indices[i]];
+    printf("%d. %s (Prioridad: %hu)", i + 1, o->tarea, o->priority);
+
+    if (firstList(o->adyacentes) != NULL) {
       printf(" - Precedente: ");
-      for (List *e = firstList(t -> adyacentes); e != NULL; e = nextList(t->adyacentes)) {
-        task *prec = (task *)nextList(e);
-        printf("%s", prec->tarea);
-        if(nextList(e) != NULL){
-          printf(", ");
+      int cont2 = 0;
+      for (char *j = firstList(o->adyacentes); j != NULL; j = nextList(o->adyacentes)) {
+        if (cont2 == 0) {
+          printf("%s", j);
+          cont2++;
+        } else {
+          printf(", %s", j);
         }
       }
     }
+
     printf("\n");
-    cont++;
-    a = nextMap(map);
   }
 }
+
+void completada(HashMap *map, char *nombre, int *cont) {
+  task *tarea = (task *)searchMap(map, nombre); // Obtener la tarea del HashMap
+  
+  if (tarea == NULL) {
+    printf("La tarea no existe.\n");
+    return;
+  }
+  
+  if (tarea->adyacentes != NULL) {
+    printf("¿Estás seguro que deseas eliminar la tarea? (s/n):\n ");
+    char respuesta;
+    scanf(" %c", &respuesta);
+    
+    if (respuesta != 's') {
+      printf("La tarea no ha sido eliminada.\n");
+      return;
+    }
+  }
+  
+  tarea->completada = true; // Marcar la tarea como completada
+  
+  eraseMap(map, nombre); // Eliminar la tarea del HashMap
+  
+  printf("La tarea \"%s\" ha sido eliminada.\n", nombre);
+  (*cont)--;
+}
+
+
 
 int main(){
   unsigned short numIngresado, prioridadT;
   char nombreT[21];
-
-  HashMap *map = createMap(100);
+  HashMap *map = createMap(22);
+  int conT = 0;
   
   while(true){
     mostrarMenu();
@@ -96,9 +158,18 @@ int main(){
     if (numIngresado == 1) {
       printf("Ingrese el Nombre de la tarea\n");
       scanf(" %[^\n]", nombreT);
+
+      int largoName = strlen(nombreT);
+          
+      while (largoName > 21 || largoName < 1) {
+        printf("Ingrese un nombre válido (hasta 20 caracteres)\n");
+        scanf(" %[^\n]", nombreT);
+        largoName = strlen(nombreT);
+      }
+      
       printf("Ingrese la prioridad de la tarea\n");
       scanf("%hu", &prioridadT);
-      agregarTarea(nombreT,prioridadT,map);
+      agregarTarea(nombreT,prioridadT,map,&conT);
     }
     if (numIngresado == 2) {
       char t1[21],t2[21];
@@ -109,10 +180,13 @@ int main(){
       precedencia(t1,t2,map);
     }
     if (numIngresado == 3) {
-      mostrarTareas(map);
+      mostrarTareas(map,conT);
     }
     if (numIngresado == 4) {
-      //completada();
+      char name[21];
+      printf("Ingrese el Nombre de la tarea\n");
+      scanf(" %[^\n]", name);
+      completada(map,name,&conT);
     }
   }
   return 0;
