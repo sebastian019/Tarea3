@@ -107,33 +107,32 @@ void mostrarTareas(HashMap *map, int conT) {
 
 // En esta funcion recibe una tarea, la cual sera maracada como "completada" y eliminada del mapa
 void completada(HashMap *map, char *nombre, int *cont) {
-  Pair *i = searchMap(map, nombre);
-  if(i == NULL){
+  Pair *e = searchMap(map, nombre);
+  if(e == NULL){// Se busca si existe la tarea
     printf("No se encontro la tarea\n");
     return;
   }
-  
   char conf[2];
   
-  if (((task *)i->value)->adyacentes != NULL) {
-    printf("¿estás seguro que desea eliminar la tarea? [s/n]");
+  if (((task *)e->value)->adyacentes != NULL) { // Se verifica si la tarea a eliminar tiene lista de precedencia
+    printf("¿Quiere eliminar la tarea? (s/n)");
     scanf(" %[^\n]", conf);
     printf("%s\n", conf);
     if (strcmp(conf, "n") == 0)
       return;
   }
-  eraseMap(map, nombre);
+  eraseMap(map, nombre); // Se elimina del mapa
   for(Pair *a = firstMap(map) ; a != NULL ; a = nextMap(map)){ 
     List *o=((task*)a->value)->adyacentes;
     if (firstList(o) != NULL) {
       for (char *j = firstList(o); j != NULL;j = nextList(o)) {
         if (strcmp(j, nombre)==0) {
-          popCurrent(o);
+          popCurrent(o); // Se elimina de la lista 
         }
       }
     }
   }
-  (*cont)--;
+  (*cont)--; // se decrementa el contador, ya que se elimino una tarea
 }
 
 // Desde el main se llaman todas las funciones y se ingresan los nombres de las tareas, ademas de crear el mapa
