@@ -8,10 +8,10 @@
 #define BARRA "-------------------------------------------------------"
 
 typedef struct{
-  char tarea[21];
-  unsigned short priority;
-  bool completada;
-  List *adyacentes;
+  char tarea[21]; //Nombre de la tarea
+  unsigned short priority; //Prioridad de la tarea
+  bool completada; // Con esta variable se verfica si se completo o no la tarea
+  List *adyacentes; // Lista de las tareas precedentes
 } task;
 
 typedef struct{
@@ -19,7 +19,7 @@ typedef struct{
 }adyacentes;
 
 
-void mostrarMenu(){
+void mostrarMenu(){//Funcion que muestra el menu
   puts(BARRA);
   printf("                         Menu\n");
   puts(BARRA);
@@ -27,46 +27,48 @@ void mostrarMenu(){
   puts(BARRA);
 }
 
+//En esta funcion de agrega tarea a un mapa, en el cual la calve es el nombre de la tarea
 void agregarTarea(char *nombre,unsigned short prioridad, HashMap* map, int *cont){
-  task* newTarea = (task*)malloc(sizeof(task));
-  strcpy(newTarea -> tarea, nombre);
+  task* newTarea = (task*)malloc(sizeof(task)); // se le reserva memoria a la nueva tarea
+  strcpy(newTarea -> tarea, nombre); // se copia en el struct
   newTarea -> priority = prioridad;
-  newTarea -> completada = false;
-  insertMap(map, newTarea -> tarea, newTarea);
-  (*cont)++;
+  newTarea -> completada = false;// Se inician todas las "nuevas tareas" como falsas
+  insertMap(map, newTarea -> tarea, newTarea);//se inserta en el mapa
+  (*cont)++; // Este contador se utiliza para llevar la cuenta de cuantos datos hay en el mapa
 }
 
-void precedencia(char *t1, char *t2,HashMap *map){
-  Pair* i=searchMap(map, t2);
-  if(((task *)i->value)->adyacentes==NULL){
+// En esta funcion se establece la precedencia entre tareas
+void precedencia(char *t1, char *t2,HashMap *map){ 
+  Pair* i=searchMap(map, t2); // Se busca si en el mapa existe la tarea 2
+  if(((task *)i->value)->adyacentes==NULL){// Si este dato del mapa no tenia una lista de precedencia, se crea
     ((task*)i->value)->adyacentes = createList();
   }
-  Pair* l=searchMap(map, t1);
-  if(l == NULL || l == NULL){
+  Pair* l=searchMap(map, t1);//Se busca si en el mapa existe la tarea 2
+  if(l == NULL || l == NULL){ // si alguno de los "serchMap" retorna "NULL", se imprime el mensaje correspondiente y se finaliza el proceso
     printf("Una o dos de las tareas no existe");
     return;
   }
-  pushBack(((task *)i->value)->adyacentes, l->key);
+  pushBack(((task *)i->value)->adyacentes, l->key);// La tarea 1 se ingresa a a lista de precedencia de la tarea 2
 }
 
-void mostrarTareas(HashMap *map, int conT) {
-  Pair *a = firstMap(map);
-  if (a == NULL) {
+// En esta funcion se mustran las tareas y su precedencia ordenadas por prioridad 
+void mostrarTareas(HashMap *map, int conT) { 
+  Pair *a = firstMap(map);//Esta variable se utiliza para recorrer el mapa, desde el inicio 
+  if (a == NULL) {// En caso de que no se haya ingresado nonguna tarea o se hayan eliminado mostrrara el mensaje correspondiente
     printf("No se ha ingresado ninguna tarea\n");
     return;
   }
 
-  int numTareas = conT;
-  task **tareasAux = malloc(sizeof(task *) * numTareas);
-  int *indices = malloc(sizeof(int) * numTareas);
-  int index = 0;
+  int numTareas = conT; // Esta variable se inicializa con el valor del contador en ese momento
+  task **tareasAux = malloc(sizeof(task *) * numTareas);// Se crea aun arrgelo axuiliar
+  int *indices = malloc(sizeof(int) * numTareas);// Se crea indices para no modificar la estructura del arreglo
+  int pos = 0;
 
-  int cont = 1;
-  while (a != NULL) {
+  while (a != NULL) {// En este ciclo los datos del mapa se ingresan al arreglo auxiliar
     task *o = (task *)a->value;
-    tareasAux[index] = o;
-    indices[index] = index;
-    index++;
+    tareasAux[pos] = o;
+    indices[pos] = pos;
+    pos++;
 
     a = nextMap(map);
   }
@@ -75,15 +77,14 @@ void mostrarTareas(HashMap *map, int conT) {
   for (int i = 1; i < numTareas; i++) {
     int j = i;
     while (j > 0 && tareasAux[indices[j - 1]]->priority > tareasAux[indices[j]]->priority) {
-      int temp = indices[j];
+      int aux = indices[j];
       indices[j] = indices[j - 1];
-      indices[j - 1] = temp;
+      indices[j - 1] = aux;
       j--;
     }
   }
 
   // Mostrar las tareas ordenadas por prioridad con precedencia
-  printf("Tareas ordenadas por prioridad:\n");
   for (int i = 0; i < numTareas; i++) {
     task *o = tareasAux[indices[i]];
     printf("%d. %s (Prioridad: %hu)", i + 1, o->tarea, o->priority);
@@ -100,11 +101,11 @@ void mostrarTareas(HashMap *map, int conT) {
         }
       }
     }
-
     printf("\n");
   }
 }
 
+// En esta funcion recibe una tarea, la cual sera maracada como "completada" y eliminada del mapa
 void completada(HashMap *map, char *nombre, int *cont) {
   task *tarea = (task *)searchMap(map, nombre); // Obtener la tarea del HashMap
   
@@ -124,38 +125,44 @@ void completada(HashMap *map, char *nombre, int *cont) {
     }
   }
   
-  tarea->completada = true; // Marcar la tarea como completada
+  /*if(tarea -> adyacentes != NULL){
+    for(char *j = firstList(tarea -> adyacentes) ; j != NULL ; j = nextList(tarea -> adyacentes)){
+      if(strcmp(j, tarea -> tarea)){
+        popCurrent(tarea -> adyacentes);
+      }
+    }
+  }*/ // En esta parte quiero entrar a la lista de precedencia de la tarea actual y eliminarla, pero da error de segmentacion en el "for" :(
   
-  eraseMap(map, nombre); // Eliminar la tarea del HashMap
+  tarea->completada = true; // Marcar la tarea como "completada"
   
+  eraseMap(map, nombre); // Eliminar la tarea del mapa
   printf("La tarea \"%s\" ha sido eliminada.\n", nombre);
-  (*cont)--;
+  (*cont)--;// El contador se decrementa, ya que se elimino una tarea, para asi mostrar sin la tarea eliminada
 }
 
-
-
+// Desde el main se llaman todas las funciones y se ingresan los nombres de las tareas, ademas de crear el mapa
 int main(){
   unsigned short numIngresado, prioridadT;
   char nombreT[21];
-  HashMap *map = createMap(22);
-  int conT = 0;
+  HashMap *map = createMap(22); // se crea el mapa
+  int conT = 0; // Aqui se inicializa el contador que llevara la cuenta de cuantos valores hay en el mapa
   
   while(true){
     mostrarMenu();
     scanf("%hu", &numIngresado);
     while (numIngresado > 4 || numIngresado < 0) {
       printf("Ingrese un número válido \n");
-      scanf("%hu", &numIngresado);
+      scanf("%hu", &numIngresado);// Aqui se asegura de ingresar un numero correcto para el menu
     }
     
-    if (numIngresado == 0) {
+    if (numIngresado == 0) {// Si se ingrea 0 se termina el programa
       printf("\n");
       puts(BARRA);
       printf("                   Fin Del Programa\n");
       puts(BARRA);
       return 0;
     }
-    if (numIngresado == 1) {
+    if (numIngresado == 1) {// Si se ingrea 1 se agrega tarea
       printf("Ingrese el Nombre de la tarea\n");
       scanf(" %[^\n]", nombreT);
 
@@ -171,7 +178,7 @@ int main(){
       scanf("%hu", &prioridadT);
       agregarTarea(nombreT,prioridadT,map,&conT);
     }
-    if (numIngresado == 2) {
+    if (numIngresado == 2) {// Si se ingrea 2 se establece precedencia entre tareas
       char t1[21],t2[21];
       printf("Ingrese el Nombre de la tarea 1\n");
       scanf(" %[^\n]", t1);
@@ -179,10 +186,10 @@ int main(){
       scanf(" %[^\n]", t2);
       precedencia(t1,t2,map);
     }
-    if (numIngresado == 3) {
+    if (numIngresado == 3) {// Si se ingrea 3 se muestran las tareas ordenadas por prioridad
       mostrarTareas(map,conT);
     }
-    if (numIngresado == 4) {
+    if (numIngresado == 4) {// Si se ingrea 4 se elimina una tarea del mapa
       char name[21];
       printf("Ingrese el Nombre de la tarea\n");
       scanf(" %[^\n]", name);
