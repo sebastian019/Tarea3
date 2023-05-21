@@ -12,7 +12,7 @@ una vez ingresado el numero debera apretar "enter"
 y escribir lo que se le pedira a continuacion.
 Para terminar la ejecucion de el programa debera ingresar "0".
 
-Funciones Correctas: todas en casos promedio
+Funciones Correctas: En su totalidad agregar tarea y precedencia, mostrar tareas por hacer, no lo muestra ordenado por precedencia (solo por prioridad) y la funcion completada, no elimina la tarea de las listas precedentes, solo de la estructura "principal"
 
 Herramientas: Repl.it, github.
 
