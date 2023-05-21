@@ -10,7 +10,7 @@
 typedef struct{
   char tarea[21]; //Nombre de la tarea
   unsigned short priority; //Prioridad de la tarea
-  bool completada; // Con esta variable se verfica si se completo o no la tarea
+  bool completada; // Con esta variable se verfica si se completo la tarea
   List *adyacentes; // Lista de las tareas precedentes
 } task;
 
@@ -48,13 +48,13 @@ void precedencia(char *t1, char *t2,HashMap *map){
     printf("Una o dos de las tareas no existe");
     return;
   }
-  pushBack(((task *)i->value)->adyacentes, l->key);// La tarea 1 se ingresa a a lista de precedencia de la tarea 2
+  pushBack(((task *)i->value)->adyacentes, l->key);// La tarea 1 se ingresa a la lista de precedencia de la tarea 2
 }
 
 // En esta funcion se mustran las tareas y su precedencia ordenadas por prioridad 
 void mostrarTareas(HashMap *map, int conT) { 
   Pair *a = firstMap(map);//Esta variable se utiliza para recorrer el mapa, desde el inicio 
-  if (a == NULL) {// En caso de que no se haya ingresado nonguna tarea o se hayan eliminado mostrrara el mensaje correspondiente
+  if (a == NULL) {// En caso de que no se haya ingresado nonguna tarea o se hayan eliminado mostrara el mensaje correspondiente
     printf("No se ha ingresado ninguna tarea\n");
     return;
   }
