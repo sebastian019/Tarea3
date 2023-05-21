@@ -107,37 +107,33 @@ void mostrarTareas(HashMap *map, int conT) {
 
 // En esta funcion recibe una tarea, la cual sera maracada como "completada" y eliminada del mapa
 void completada(HashMap *map, char *nombre, int *cont) {
-  task *tarea = (task *)searchMap(map, nombre); // Obtener la tarea del HashMap
-  
-  if (tarea == NULL) {
-    printf("La tarea no existe.\n");
+  Pair *i = searchMap(map, nombre);
+  if(i == NULL){
+    printf("No se encontro la tarea\n");
     return;
   }
   
-  if (tarea->adyacentes != NULL) {
-    printf("¿Estás seguro que deseas eliminar la tarea? (s/n):\n ");
-    char respuesta;
-    scanf(" %c", &respuesta);
-    
-    if (respuesta != 's') {
-      printf("La tarea no ha sido eliminada.\n");
-      return;
-    }
-  }
+  char conf[2];
   
-  /*if(tarea -> adyacentes != NULL){
-    for(char *j = firstList(tarea -> adyacentes) ; j != NULL ; j = nextList(tarea -> adyacentes)){
-      if(strcmp(j, tarea -> tarea)){
-        popCurrent(tarea -> adyacentes);
+  if (((task *)i->value)->adyacentes != NULL) {
+    printf("¿estás seguro que desea eliminar la tarea? [s/n]");
+    scanf(" %[^\n]", conf);
+    printf("%s\n", conf);
+    if (strcmp(conf, "n") == 0)
+      return;
+  }
+  eraseMap(map, nombre);
+  for(Pair *a = firstMap(map) ; a != NULL ; a = nextMap(map)){ 
+    List *o=((task*)a->value)->adyacentes;
+    if (firstList(o) != NULL) {
+      for (char *j = firstList(o); j != NULL;j = nextList(o)) {
+        if (strcmp(j, nombre)==0) {
+          popCurrent(o);
+        }
       }
     }
-  }*/ // En esta parte quiero entrar a la lista de precedencia de la tarea actual y eliminarla, pero da error de segmentacion en el "for" :(
-  
-  tarea->completada = true; // Marcar la tarea como "completada"
-  
-  eraseMap(map, nombre); // Eliminar la tarea del mapa
-  printf("La tarea \"%s\" ha sido eliminada.\n", nombre);
-  (*cont)--;// El contador se decrementa, ya que se elimino una tarea, para asi mostrar sin la tarea eliminada
+  }
+  (*cont)--;
 }
 
 // Desde el main se llaman todas las funciones y se ingresan los nombres de las tareas, ademas de crear el mapa
