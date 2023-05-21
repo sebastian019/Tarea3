@@ -18,7 +18,7 @@ Herramientas: Repl.it, github.
 
 PROBLEMAS U OBSERVACIONES:
 1. Las funciones quedaron en el main.
-2. No logre ordenar por precedencia.
+2. No logre ordenar por precedencia, pensaba en usar un monticulo de minimos en el cual iban a ser insertadas las tareas sin precedencia, para asi ordenarlas segun corresponda y compajinarla con el orden por prioridad, por falta de timepo no lo implemente.
 
 Trabajo en equipo:
 En este caso no hubo trabajo en equipo, ya que, decidimos hacerlo por separado, por lo que la tabla de 
