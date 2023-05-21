@@ -18,7 +18,7 @@ Herramientas: Repl.it, github.
 
 PROBLEMAS U OBSERVACIONES:
 1. Las funciones quedaron en el main.
-2. 
+2. No logre eliminar las tareas de las listas precedentes, ni ordenar por precedencia.
 
 Trabajo en equipo:
 En este caso no hubo trabajo en equipo, ya que, decidimos hacerlo por separado, por lo que la tabla de 
